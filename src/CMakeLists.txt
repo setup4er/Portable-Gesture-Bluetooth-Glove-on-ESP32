@@ -4,6 +4,7 @@ idf_component_register(
         app/app.c
         ble/ble.c
         ble/modules/gap.c
+        ble/modules/hid.c
         drivers/board_led.c
         board/board.c
     INCLUDE_DIRS 

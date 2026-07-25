@@ -1,9 +1,8 @@
-//C++ INCLUDES
-
 // HEADERS
 #include "ble.h"
 #include "../drivers/board_led.h"
 #include "modules/gap.h"
+#include "hid.h"
 
 // ESP32
 #include "esp_err.h"
@@ -26,7 +25,6 @@ void ble_stack_init(){
         if(ret != ESP_OK){
             led_indicate_status(LED_ERROR);
         }
-
     }
     ESP_ERROR_CHECK(ret);
     led_indicate_status(LED_HIT);
@@ -40,13 +38,13 @@ void ble_stack_init(){
     }
     led_indicate_status(LED_HIT);
 
-    // 3. Enable controller
-    ret = esp_bt_controller_enable(ESP_BT_MODE_BLE);
+    // 3. Enable controller (CLASSIC!)
+    ret = esp_bt_controller_enable(ESP_BT_MODE_CLASSIC_BT);  // ← ИЗМЕНЕНО!
     if (ret != ESP_OK) {
         ESP_LOGE(STACK_TAG, "Controller enable failed: %s", esp_err_to_name(ret));
         led_indicate_status(LED_ERROR);
     }
-    ESP_LOGI(STACK_TAG, "Bluetooth controller initialized!");
+    ESP_LOGI(STACK_TAG, "Classic Bluetooth controller initialized!");
     led_indicate_status(LED_HIT);
 
     // 4. Bluedroid
@@ -66,17 +64,11 @@ void ble_stack_init(){
     }
     ESP_LOGI(STACK_TAG, "Bluedroid enabled!");
     led_indicate_status(LED_HIT);
-
 }
 
 void ble_init(){
-    esp_err_t ret;
-
     ble_stack_init();
-
-    ret = gap_register();
-    if(ret != ESP_OK){ led_indicate_status(LED_ERROR);}
-
-    
+    gap_register();
+    hid_init();
     led_indicate_status(LED_OK);
 }
