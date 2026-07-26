@@ -10,5 +10,6 @@
 #include "esp_err.h"
 
 esp_err_t hid_init(void);
+void hid_send_mouse_report(int8_t x, int8_t y, uint8_t buttons);
 
 #endif // HID_H
