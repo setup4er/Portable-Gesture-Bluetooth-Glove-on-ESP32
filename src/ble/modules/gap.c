@@ -41,7 +41,6 @@ esp_err_t gap_start(void) {
         return ret;
     }
 
-    // 3. Сделать устройство видимым и подключаемым
     ret = esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE);
     if (ret != ESP_OK) {
         ESP_LOGE(GAP_TAG, "Set scan mode failed");
