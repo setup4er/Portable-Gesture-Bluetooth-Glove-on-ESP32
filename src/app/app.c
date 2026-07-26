@@ -11,6 +11,6 @@ void app_init(){
     ble_init();
     while (1) {
         hid_send_mouse_report(0, 0, 0);
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(20));
     }
 }

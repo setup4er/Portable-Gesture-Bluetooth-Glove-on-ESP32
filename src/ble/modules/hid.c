@@ -41,8 +41,8 @@ static const uint8_t hid_mouse_descriptor[] = {
 };
 
 void hid_send_mouse_report(int8_t x, int8_t y, uint8_t buttons) {
-    uint8_t report[4] = {buttons, x, y, 0};
-    esp_bt_hid_device_send_report(ESP_HIDD_REPORT_TYPE_INPUT, 0, 4, report);
+    uint8_t report[3] = {buttons, (uint8_t)x, (uint8_t)y};
+    esp_bt_hid_device_send_report(ESP_HIDD_REPORT_TYPE_INTRDATA, 0, 3, report);
 }
 
 static void hidd_event_handler(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *param) {
@@ -78,6 +78,19 @@ static void hidd_event_handler(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *p
             break;
         case ESP_HIDD_CLOSE_EVT:
             ESP_LOGI(HID_TAG, "Host disconnected (CLOSE)");
+            break;
+        case ESP_HIDD_SET_PROTOCOL_EVT:
+            ESP_LOGI(HID_TAG, "Host set protocol mode: %d", param->set_protocol.protocol_mode);
+            break;
+
+        case ESP_HIDD_GET_REPORT_EVT:
+            ESP_LOGI(HID_TAG, "Host requested GET_REPORT: type=%d id=%d",
+                    param->get_report.report_type, param->get_report.report_id);
+            break;
+        case ESP_HIDD_SEND_REPORT_EVT:
+            ESP_LOGI(HID_TAG, "Report sent, status: %d, reason: %d, type: %d, id: %d",
+                    param->send_report.status, param->send_report.reason,
+                    param->send_report.report_type, param->send_report.report_id);
             break;
         default:
             break;
