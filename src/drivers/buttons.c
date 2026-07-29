@@ -74,6 +74,8 @@ void buttons_click_event(){
     if (hold_raw != hold_active && (now - last_hold_change) > DEBOUNCE_MS) {
         last_hold_change = now;
         hold_active = hold_raw;
+        ESP_LOGI(BTN_TAG, "HOLD %d", hold_active);
+
         ESP_LOGI(BTN_TAG, "HOLD %s", hold_active ? "engaged" : "released");
     }
 
