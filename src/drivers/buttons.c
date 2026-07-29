@@ -24,6 +24,10 @@ static int64_t last_hold_change = 0;
 static volatile bool hold_active = false;
 
 void buttons_init(){
+    gpio_reset_pin(LMB_BUTTON);
+    gpio_reset_pin(RMB_BUTTON);
+    gpio_reset_pin(HOLD_BUTTON);
+
     gpio_config_t btn_config = {
         .pin_bit_mask =
             (1ULL << LMB_BUTTON) |
@@ -37,9 +41,11 @@ void buttons_init(){
 
     gpio_config(&btn_config);
 }
+
 void buttons_click_event(){
     int64_t now = esp_timer_get_time() / 1000; // мс
 
+    // Кнопка замыкает на GND -> при нажатии LOW (0)
     bool lmb_raw  = (gpio_get_level(LMB_BUTTON)  == 1);
     bool rmb_raw  = (gpio_get_level(RMB_BUTTON)  == 1);
     bool hold_raw = (gpio_get_level(HOLD_BUTTON) == 1);
@@ -64,14 +70,13 @@ void buttons_click_event(){
         ESP_LOGI(BTN_TAG, "RMB %s", rmb_raw ? "pressed" : "released");
     }
     
-    // --- HOLD (не HID, просто внутренний флаг) ---
+    // --- HOLD (внутренний флаг) ---
     if (hold_raw != hold_active && (now - last_hold_change) > DEBOUNCE_MS) {
         last_hold_change = now;
         hold_active = hold_raw;
         ESP_LOGI(BTN_TAG, "HOLD %s", hold_active ? "engaged" : "released");
     }
 
-    // Отправляем HID-отчёт мыши ТОЛЬКО если ЛКМ/ПКМ реально изменились
     if (new_mask != prev_mask) {
         hid_send_mouse_report(0, 0, new_mask);
         prev_mask = new_mask;

@@ -1680,10 +1680,12 @@ CONFIG_RMT_OBJ_CACHE_SAFE=y
 #
 # ESP-Driver:SPI Configurations
 #
-# CONFIG_SPI_MASTER_ISR_IN_IRAM is not set
+# default:
+CONFIG_SPI_MASTER_ISR_IN_IRAM=y
 # default:
 # CONFIG_SPI_SLAVE_IN_IRAM is not set
-# CONFIG_SPI_SLAVE_ISR_IN_IRAM is not set
+# default:
+CONFIG_SPI_SLAVE_ISR_IN_IRAM=y
 # end of ESP-Driver:SPI Configurations
 
 #
@@ -1737,9 +1739,13 @@ CONFIG_RMT_OBJ_CACHE_SAFE=y
 CONFIG_ETH_ENABLED=y
 # default:
 CONFIG_ETH_USE_ESP32_EMAC=y
-CONFIG_ETH_DMA_BUFFER_SIZE=256
-CONFIG_ETH_DMA_RX_BUFFER_NUM=3
-CONFIG_ETH_DMA_TX_BUFFER_NUM=3
+# default:
+CONFIG_ETH_DMA_BUFFER_SIZE=512
+# default:
+CONFIG_ETH_DMA_RX_BUFFER_NUM=10
+# default:
+CONFIG_ETH_DMA_TX_BUFFER_NUM=10
+# default:
 # CONFIG_ETH_IRAM_OPTIMIZATION is not set
 # CONFIG_ETH_USE_SPI_ETHERNET is not set
 # default:
@@ -2015,6 +2021,8 @@ CONFIG_ESP_BROWNOUT_USE_INTR=y
 # end of Brownout Detector
 # end of Power Supplier
 
+# default:
+CONFIG_ESP_SPI_BUS_LOCK_ISR_FUNCS_IN_IRAM=y
 # default:
 CONFIG_ESP_INTR_IN_IRAM=y
 # end of Hardware Settings
