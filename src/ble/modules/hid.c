@@ -87,11 +87,11 @@ static void hidd_event_handler(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *p
             ESP_LOGI(HID_TAG, "Host requested GET_REPORT: type=%d id=%d",
                     param->get_report.report_type, param->get_report.report_id);
             break;
-        case ESP_HIDD_SEND_REPORT_EVT:
-            ESP_LOGI(HID_TAG, "Report sent, status: %d, reason: %d, type: %d, id: %d",
-                    param->send_report.status, param->send_report.reason,
-                    param->send_report.report_type, param->send_report.report_id);
-            break;
+        // case ESP_HIDD_SEND_REPORT_EVT:
+        //     ESP_LOGI(HID_TAG, "Report sent, status: %d, reason: %d, type: %d, id: %d",
+        //             param->send_report.status, param->send_report.reason,
+        //             param->send_report.report_type, param->send_report.report_id);
+        //     break;
         default:
             break;
     }
