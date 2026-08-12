@@ -34,7 +34,7 @@ void buttons_init(){
             (1ULL << RMB_BUTTON) |
             (1ULL << HOLD_BUTTON),
         .mode = GPIO_MODE_INPUT,
-        .pull_up_en = GPIO_PULLUP_DISABLE,
+        .pull_up_en = GPIO_PULLUP_ENABLE,
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
         .intr_type = GPIO_INTR_DISABLE,
     };
@@ -46,9 +46,9 @@ void buttons_click_event(){
     int64_t now = esp_timer_get_time() / 1000; // мс
 
     // Кнопка замыкает на GND -> при нажатии LOW (0)
-    bool lmb_raw  = (gpio_get_level(LMB_BUTTON)  == 1);
-    bool rmb_raw  = (gpio_get_level(RMB_BUTTON)  == 1);
-    bool hold_raw = (gpio_get_level(HOLD_BUTTON) == 1);
+    bool lmb_raw  = (gpio_get_level(LMB_BUTTON)  == 0);
+    bool rmb_raw  = (gpio_get_level(RMB_BUTTON)  == 0);
+    bool hold_raw = (gpio_get_level(HOLD_BUTTON) == 0);
 
     uint8_t new_mask = prev_mask;
 

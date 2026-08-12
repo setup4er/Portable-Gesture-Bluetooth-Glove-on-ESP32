@@ -1,0 +1,65 @@
+[33mcommit f4d5ab2dde24213c8c951f805764f3857d2934b9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: Ivan <ivan.andreevich000@gmail.com>
+Date:   Wed Jul 29 12:54:42 2026 +0300
+
+    Fixed logic in app
+
+[33mcommit 657233c656bb5e435fd30c11bdf07bf09ec1c551[m
+Author: Ivan <ivan.andreevich000@gmail.com>
+Date:   Wed Jul 29 12:45:14 2026 +0300
+
+    Fixed logic button. Fixed config ESP.
+
+[33mcommit de157c7a906ebd6878b895a8012838f29040261e[m
+Author: Ivan <ivan.andreevich000@gmail.com>
+Date:   Wed Jul 29 12:16:24 2026 +0300
+
+    Added hold effect on button LMB, RMB, HOLD-BTN. Added HOLD-BTN (fix cursor on monitor). Fixed button logic
+
+[33mcommit 7f2ea801b0589c89db2483a0c470977ce07b7ae2[m
+Author: Ivan <ivan.andreevich000@gmail.com>
+Date:   Wed Jul 29 00:18:04 2026 +0300
+
+    Added buttons.c module with realize.
+
+[33mcommit 0e611bc8a689da7f5cbac24e3945d6c2b5894f05[m
+Author: Ivan <ivan.andreevich000@gmail.com>
+Date:   Sun Jul 26 17:01:27 2026 +0300
+
+    Added MIT LICENSE
+
+[33mcommit 53ab79a4a255b4b1517eff3a9e9f98d843704a8f[m
+Author: Ivan <ivan.andreevich000@gmail.com>
+Date:   Sun Jul 26 12:29:28 2026 +0300
+
+    Added README.md
+
+[33mcommit 07d5cd16e20a68c97a0c34258851aac764889510[m
+Author: Ivan <ivan.andreevich000@gmail.com>
+Date:   Sun Jul 26 12:14:50 2026 +0300
+
+    Added more log. Fixed input type in HID.
+
+[33mcommit 9df1ee1f2b6764a9e52eef2a6cc26486bef29655[m
+Author: Ivan <ivan.andreevich000@gmail.com>
+Date:   Sun Jul 26 11:27:54 2026 +0300
+
+    Fixed memory error. Successfully connection with device. HID has been setuped fully
+
+[33mcommit f32440da9f540466ba334407f445894bdfeb3ccc[m
+Author: Ivan <ivan.andreevich000@gmail.com>
+Date:   Sat Jul 25 20:55:34 2026 +0300
+
+    Switched BLE to Bluetooth Classic. HID has been setuped.
+
+[33mcommit 78a2be6384ab1ad13ebe05c5c418504a8bc30993[m
+Author: Ivan <ivan.andreevich000@gmail.com>
+Date:   Sat Jul 25 18:17:15 2026 +0300
+
+    Refactoring. Deleted GATTS. Using API esp_hid.
+
+[33mcommit 840b605a51cebab48b430bef48d1df721e768411[m
+Author: Ivan <ivan.andreevich000@gmail.com>
+Date:   Sat Jul 25 16:04:35 2026 +0300
+
+    Created BLE Stack (NVS, Controller, Blueroid), reg GAP callback, clear func GATT handler
