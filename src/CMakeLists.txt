@@ -7,6 +7,7 @@ idf_component_register(
         ble/modules/hid.c
         drivers/board_led.c
         drivers/buttons.c
+        drivers/oled.c
         board/board.c
     INCLUDE_DIRS 
         "."
