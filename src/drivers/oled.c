@@ -13,20 +13,33 @@
 #define OLED_HEIGHT 64
 #define SDA_PIN GPIO_NUM_21
 #define SCL_PIN GPIO_NUM_22
+#define OLED_BUFFER_SIZE (OLED_WIDTH * OLED_HEIGHT / 8)
+
 
 static esp_lcd_panel_handle_t panel_handle = NULL;
-static uint8_t blank_buffer[OLED_WIDTH * OLED_HEIGHT / 8] = {0};
+static uint8_t blank_buffer[OLED_BUFFER_SIZE] = {0};
 
+
+void oled_deinit() {
+    if (panel_handle) {
+        esp_lcd_panel_del(panel_handle);
+        panel_handle = NULL;
+    }
+}
 
 void screen_clear(){
-    if (panel_handle != NULL) {
-        esp_err_t ret = esp_lcd_panel_draw_bitmap(panel_handle, 0, 0, OLED_WIDTH, OLED_HEIGHT, blank_buffer);
-        if (ret != ESP_OK) {
-            ESP_LOGE(OLED_TAG, "Failed to clear screen: %s", esp_err_to_name(ret));
-        }
-        ESP_LOGI(OLED_TAG, "Screen cleared.");
+    esp_err_t ret;
+
+    if (panel_handle == NULL) {
+        ESP_LOGE(OLED_TAG, "Panel not initialized");
+        return;
+    }
+    memset(blank_buffer, 0x00, OLED_BUFFER_SIZE);
+    ret = esp_lcd_panel_draw_bitmap(panel_handle, 0, 0, OLED_WIDTH, OLED_HEIGHT, blank_buffer);
+    if (ret != ESP_OK) {
+        ESP_LOGE(OLED_TAG, "Failed to clear screen: %s", esp_err_to_name(ret));
     } else {
-        ESP_LOGE(OLED_TAG, "Panel handle is NULL. Cannot clear screen.");
+        ESP_LOGI(OLED_TAG, "Screen cleared");
     }
 }
 
@@ -57,7 +70,7 @@ void oled_init()
         .dev_addr = OLED_I2C_ADDRESS,
         .scl_speed_hz = 400000,
         .control_phase_bytes = 1,
-        .dc_bit_offset = 0,
+        .dc_bit_offset = 6,
         .lcd_cmd_bits = 8,
         .lcd_param_bits = 8,
     };
@@ -97,4 +110,6 @@ void oled_init()
 
     ESP_LOGI(OLED_TAG, "OLED initialized");
     led_indicate_status(LED_HIT);
+
+    screen_clear();
 }

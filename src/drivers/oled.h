@@ -8,6 +8,7 @@
  */
 
 void oled_init();
+void oled_deinit();
 void screen_clear();
 
 #endif // OLED_H
