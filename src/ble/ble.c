@@ -38,8 +38,8 @@ void ble_stack_init(){
     }
     led_indicate_status(LED_HIT);
 
-    // 3. Enable controller (CLASSIC!)
-    ret = esp_bt_controller_enable(ESP_BT_MODE_CLASSIC_BT);  // ← ИЗМЕНЕНО!
+    // 3. Enable controller
+    ret = esp_bt_controller_enable(ESP_BT_MODE_CLASSIC_BT);
     if (ret != ESP_OK) {
         ESP_LOGE(STACK_TAG, "Controller enable failed: %s", esp_err_to_name(ret));
         led_indicate_status(LED_ERROR);

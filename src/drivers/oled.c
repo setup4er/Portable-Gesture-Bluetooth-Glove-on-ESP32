@@ -15,6 +15,20 @@
 #define SCL_PIN GPIO_NUM_22
 
 static esp_lcd_panel_handle_t panel_handle = NULL;
+static uint8_t blank_buffer[OLED_WIDTH * OLED_HEIGHT / 8] = {0};
+
+
+void screen_clear(){
+    if (panel_handle != NULL) {
+        esp_err_t ret = esp_lcd_panel_draw_bitmap(panel_handle, 0, 0, OLED_WIDTH, OLED_HEIGHT, blank_buffer);
+        if (ret != ESP_OK) {
+            ESP_LOGE(OLED_TAG, "Failed to clear screen: %s", esp_err_to_name(ret));
+        }
+        ESP_LOGI(OLED_TAG, "Screen cleared.");
+    } else {
+        ESP_LOGE(OLED_TAG, "Panel handle is NULL. Cannot clear screen.");
+    }
+}
 
 void oled_init()
 {
@@ -36,6 +50,8 @@ void oled_init()
         led_indicate_status(LED_ERROR);
         return;
     }
+    ESP_LOGI(OLED_TAG, "I2C bus initialized successfully.");
+    led_indicate_status(LED_HIT);
 
     esp_lcd_panel_io_i2c_config_t io_config = {
         .dev_addr = OLED_I2C_ADDRESS,
@@ -53,6 +69,8 @@ void oled_init()
         led_indicate_status(LED_ERROR);
         return;
     }
+    ESP_LOGI(OLED_TAG, "I2C IO initialized successfully.");
+    led_indicate_status(LED_HIT);
 
     esp_lcd_panel_ssd1306_config_t ssd1306_cfg = {
         .height = OLED_HEIGHT,
@@ -70,6 +88,8 @@ void oled_init()
         led_indicate_status(LED_ERROR);
         return;
     }
+    ESP_LOGI(OLED_TAG, "Panel initialized successfully.");
+    led_indicate_status(LED_HIT);
 
     esp_lcd_panel_reset(panel_handle);
     esp_lcd_panel_init(panel_handle);
