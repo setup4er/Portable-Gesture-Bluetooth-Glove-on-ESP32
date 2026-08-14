@@ -10,6 +10,7 @@
 #define HID_TAG "HID"
 
 static bool hid_ready = false;
+static bool host_connected = false;
 
 static const uint8_t hid_mouse_descriptor[] = {
     0x05, 0x01,        // Usage Page (Generic Desktop)
@@ -75,9 +76,11 @@ static void hidd_event_handler(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *p
         case ESP_HIDD_OPEN_EVT:
             ESP_LOGI(HID_TAG, "Host connected (OPEN)");
             hid_send_mouse_report(0, 0, 0);
+            host_connected = true;
             break;
         case ESP_HIDD_CLOSE_EVT:
             ESP_LOGI(HID_TAG, "Host disconnected (CLOSE)");
+            host_connected = false;
             break;
         case ESP_HIDD_SET_PROTOCOL_EVT:
             ESP_LOGI(HID_TAG, "Host set protocol mode: %d", param->set_protocol.protocol_mode);
@@ -95,6 +98,10 @@ static void hidd_event_handler(esp_hidd_cb_event_t event, esp_hidd_cb_param_t *p
         default:
             break;
     }
+}
+
+bool host_is_connected(){
+    return host_connected;
 }
 
 esp_err_t hid_init(void) {

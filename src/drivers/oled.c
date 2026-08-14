@@ -7,6 +7,7 @@
 #include "esp_lcd_panel_ssd1306.h"
 #include "esp_lcd_panel_ops.h"
 
+
 #define OLED_TAG "OLED"
 #define OLED_I2C_ADDRESS 0x3C
 #define OLED_WIDTH 128
@@ -19,7 +20,6 @@
 static esp_lcd_panel_handle_t panel_handle = NULL;
 static uint8_t blank_buffer[OLED_BUFFER_SIZE] = {0};
 
-
 void oled_deinit() {
     if (panel_handle) {
         esp_lcd_panel_del(panel_handle);
@@ -27,7 +27,38 @@ void oled_deinit() {
     }
 }
 
-void screen_clear(){
+void oled_update_ui(bool host_is_connected){
+    if(!host_is_connected)
+    {
+        return;
+    }
+    oled_clear();
+    oled_print_bluetooth_connected_icon();
+}
+
+void oled_print_bluetooth_connected_icon(){
+    const uint8_t bluetooth_16x16[32] = {
+    0x00, 0x00,
+    0x06, 0x00,
+    0x07, 0x00,
+    0x06, 0x80,
+    0x06, 0xC0,
+    0x06, 0x60,
+    0x06, 0x30,
+    0x06, 0x18,
+    0x06, 0x30,
+    0x06, 0x60,
+    0x06, 0xC0,
+    0x06, 0x80,
+    0x07, 0x00,
+    0x06, 0x00,
+    0x00, 0x00,
+    0x00, 0x00
+    };
+    esp_lcd_panel_draw_bitmap(panel_handle, 0, 64-16, 16, 64, bluetooth_16x16);
+}
+
+void oled_clear(){
     esp_err_t ret;
 
     if (panel_handle == NULL) {
@@ -111,5 +142,5 @@ void oled_init()
     ESP_LOGI(OLED_TAG, "OLED initialized");
     led_indicate_status(LED_HIT);
 
-    screen_clear();
+    oled_clear();
 }

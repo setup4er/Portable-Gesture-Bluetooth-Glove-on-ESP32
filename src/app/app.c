@@ -11,7 +11,8 @@
 
 void app_init(){
     ble_init();
-while (1) {
+    while (1) {
+        oled_update_ui(host_is_connected());
         int dx, dy;
         // calculate_delta_from_bno055(&dx, &dy); // Вычисления изменения векторов контроллера bno055
         buttons_click_event();
@@ -23,6 +24,6 @@ while (1) {
         if(dx != 0 || dy != 0){
             hid_send_mouse_report(dx, dy, 0);
         }
-        vTaskDelay(pdMS_TO_TICKS(10));
+        vTaskDelay(pdMS_TO_TICKS(40));
     }
 }
