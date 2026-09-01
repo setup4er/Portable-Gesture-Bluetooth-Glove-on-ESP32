@@ -9,15 +9,23 @@
 // ESP32
 #include "freertos/FreeRTOS.h"
 
+bool button_state[BTN_COUNT]; // Array from buttons getter
+
+int dx, dy; // Coords from BNO
+
+
 void app_init(){
     ble_init();
     oled_print_welcome_screen();
+    vTaskDelay(3000 / portTICK_PERIOD_MS);
+
     while (1) {
-        oled_update_ui(host_is_connected());
-        int dx, dy;
+        oled_update_ui(host_is_connected(), button_state);
+
         // calculate_delta_from_bno055(&dx, &dy); // Вычисления изменения векторов контроллера bno055
         buttons_click_event();
-        
+        buttons_get_states(button_state);
+
         if (buttons_is_hold_active()) {
             dx = 0;
             dy = 0;

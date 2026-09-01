@@ -13,12 +13,10 @@
 #define OLED_WIDTH  128
 #define OLED_HEIGHT 64
 
-#define SDA_PIN GPIO_NUM_21
-#define SCL_PIN GPIO_NUM_22
 
 static u8g2_t u8g2;
 
-bool is_bluetooth_icon_display = false; // Icon in NO DEVICE screen
+bool bluetooth_icon_visible = false; // Icon in NO DEVICE screen
 
 // CONFIG I2C
 const u8g2_esp32_i2c_config_t i2c_cfg = {
@@ -78,7 +76,7 @@ void oled_print_welcome_screen(void){
 
     u8g2_SetFont(
         &u8g2,
-        u8g2_font_6x10_tf
+        u8g2_font_fur11_tf
     );
 
     u8g2_DrawStr(
@@ -88,9 +86,6 @@ void oled_print_welcome_screen(void){
         "WELCOME"
     );
 
-    u8g2_SendBuffer(&u8g2);
-
-    vTaskDelay(3000 / portTICK_PERIOD_MS);
 }
 
 void oled_print_bluetooth_connected_icon(u8g2_uint_t x0, u8g2_uint_t y0)
@@ -107,25 +102,53 @@ void oled_print_bluetooth_disconnect_screen(){
         "NO DEVICE"
     );
 
-    if(!is_bluetooth_icon_display){
+    if(!bluetooth_icon_visible){
         oled_print_bluetooth_connected_icon(56, 56);
-        is_bluetooth_icon_display = true;
+        bluetooth_icon_visible = true;
     }else{
-        is_bluetooth_icon_display = false;
+        bluetooth_icon_visible = false;
     }
-    u8g2_SendBuffer(&u8g2);
-    vTaskDelay(500 / portTICK_PERIOD_MS);
 }
 
-void oled_update_ui(bool host_is_connected)
+void oled_print_pressed_button(bool button_state[BTN_COUNT]){
+    
+    u8g2_SetFont(&u8g2, u8g2_font_6x12_tf);
+
+    for(int i = 0; i < BTN_COUNT; i++){
+        if(i == ID_LMB_BUTTON && button_state[i]){
+            u8g2_DrawStr(&u8g2, 
+            41, 8,
+            "LMB"
+            );
+        }
+        if(i == ID_RMB_BUTTON && button_state[i]){
+            u8g2_DrawStr(&u8g2, 
+            109, 8,
+            "RMB"
+            );
+        }
+        if(i == ID_HOLD_BUTTON && button_state[i]){
+            u8g2_DrawStr(&u8g2, 
+            72, 8,
+            "HOLD"
+            );
+        }
+    }
+}
+
+// MAIN FUNCTION IN EXT. CYCLE
+void oled_update_ui(bool host_is_connected, bool button_state[BTN_COUNT])
 {
     u8g2_ClearBuffer(&u8g2);
-
+    
+    
     if (!host_is_connected) {
         oled_print_bluetooth_disconnect_screen();
-        return;
+        vTaskDelay(500 / portTICK_PERIOD_MS);
+    }else{
+        oled_print_bluetooth_connected_icon(0, 16);
+        oled_print_pressed_button(button_state);
     }
-    oled_print_bluetooth_connected_icon(0, 16);
 
     u8g2_SendBuffer(&u8g2);
 }
