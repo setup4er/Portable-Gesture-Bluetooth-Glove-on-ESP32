@@ -11,6 +11,7 @@
 
 void app_init(){
     ble_init();
+    oled_print_welcome_screen();
     while (1) {
         oled_update_ui(host_is_connected());
         int dx, dy;

@@ -8,8 +8,7 @@
  */
 
 void oled_init();
-void oled_clear();
-void oled_print_bluetooth_connected_icon();
 void oled_update_ui(bool host_is_connected);
+void oled_print_welcome_screen(void);
 
 #endif // OLED_H

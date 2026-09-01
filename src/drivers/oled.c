@@ -5,6 +5,7 @@
 #include "u8g2.h"
 #include "u8g2_port_esp32_hw_i2c.h"
 #include "driver/i2c_master.h"
+#include "freertos/FreeRTOS.h"
 
 #define OLED_TAG "OLED"
 
@@ -16,6 +17,8 @@
 #define SCL_PIN GPIO_NUM_22
 
 static u8g2_t u8g2;
+
+bool is_bluetooth_icon_display = false; // Icon in NO DEVICE screen
 
 // CONFIG I2C
 const u8g2_esp32_i2c_config_t i2c_cfg = {
@@ -58,7 +61,11 @@ void oled_init(void)
     u8g2_InitDisplay(&u8g2);
     u8g2_SetPowerSave(&u8g2, 0);
 
-    // draw init
+    ESP_LOGI(OLED_TAG, "OLED initialized");
+    led_indicate_status(LED_HIT);
+}
+
+void oled_print_welcome_screen(void){
     u8g2_ClearBuffer(&u8g2);
 
     u8g2_DrawFrame(
@@ -83,29 +90,42 @@ void oled_init(void)
 
     u8g2_SendBuffer(&u8g2);
 
-    ESP_LOGI(OLED_TAG, "OLED initialized");
-    led_indicate_status(LED_HIT);
+    vTaskDelay(3000 / portTICK_PERIOD_MS);
 }
 
-void oled_clear(void)
-{
-    u8g2_ClearBuffer(&u8g2);
-    u8g2_SendBuffer(&u8g2);
-}
-
-void oled_print_bluetooth_connected_icon(void)
+void oled_print_bluetooth_connected_icon(u8g2_uint_t x0, u8g2_uint_t y0)
 {
     u8g2_SetFont(&u8g2, u8g2_font_open_iconic_embedded_2x_t);
-    u8g2_DrawGlyph(&u8g2, 0, 16, 0x0048);
+    u8g2_DrawGlyph(&u8g2, x0, y0, 0x004A);
+}
+
+void oled_print_bluetooth_disconnect_screen(){
+    u8g2_SetFont(&u8g2, u8g2_font_fur17_tf);
+    u8g2_DrawStr(
+        &u8g2,
+        0, 33,
+        "NO DEVICE"
+    );
+
+    if(!is_bluetooth_icon_display){
+        oled_print_bluetooth_connected_icon(56, 56);
+        is_bluetooth_icon_display = true;
+    }else{
+        is_bluetooth_icon_display = false;
+    }
+    u8g2_SendBuffer(&u8g2);
+    vTaskDelay(500 / portTICK_PERIOD_MS);
 }
 
 void oled_update_ui(bool host_is_connected)
 {
     u8g2_ClearBuffer(&u8g2);
 
-    if (host_is_connected) {
-        oled_print_bluetooth_connected_icon();
+    if (!host_is_connected) {
+        oled_print_bluetooth_disconnect_screen();
+        return;
     }
+    oled_print_bluetooth_connected_icon(0, 16);
 
     u8g2_SendBuffer(&u8g2);
 }
