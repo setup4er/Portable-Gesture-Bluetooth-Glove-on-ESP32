@@ -70,5 +70,5 @@ void ble_init(){
     ble_stack_init();
     gap_register();
     hid_init();
-    led_indicate_status(LED_OK);
+    led_indicate_status(LED_OFF);
 }

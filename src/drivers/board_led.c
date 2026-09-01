@@ -23,8 +23,9 @@ void led_indicate_status(int status){
         vTaskDelay(50 / portTICK_PERIOD_MS);
         gpio_set_level(GPIO_NUM_2, 0);
         break;
-    default:
-        gpio_set_level(GPIO_NUM_2, 1);
+    case LED_OFF:
+        gpio_set_level(GPIO_NUM_2, 0);
+        break;
     }
 }
 

@@ -7,9 +7,8 @@
  * @description Светодиод на плате
  */
 #define LED_ERROR 1
-#define LED_OK 0
 #define LED_HIT 2
-
+#define LED_OFF 0
 
 void led_indicate_status(int status);
 void led_init();
