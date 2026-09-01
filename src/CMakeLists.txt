@@ -1,6 +1,8 @@
 idf_component_register(
-    SRCS 
-        main.c                      
+
+    SRCS
+
+        main.c
         app/app.c
         ble/ble.c
         ble/modules/gap.c
@@ -9,12 +11,20 @@ idf_component_register(
         drivers/buttons.c
         drivers/oled.c
         board/board.c
-    INCLUDE_DIRS 
+
+    INCLUDE_DIRS
+
         "."
         "app"
         "ble"
         "ble/modules"
         "drivers"
         "board"
-    PRIV_REQUIRES bt
+
+    PRIV_REQUIRES
+        bt
+
+    REQUIRES
+        esp_driver_i2c
+        u8g2
 )
