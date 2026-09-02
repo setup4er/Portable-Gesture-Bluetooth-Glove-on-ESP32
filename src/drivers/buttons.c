@@ -89,6 +89,7 @@ bool buttons_is_hold_active(void){
     return hold_active;
 }
 
+// Getter of buttons status.
 void buttons_get_states(bool states[BTN_COUNT])
 {
     states[BTN_LMB]  = (prev_mask & MASK_LMB) != 0;

@@ -11,7 +11,7 @@
 
 bool button_state[BTN_COUNT]; // Array from buttons getter
 
-int dx, dy; // Coords from BNO
+int dx, dy; // Shift cursor from BNO
 
 
 void app_init(){

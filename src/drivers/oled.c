@@ -63,6 +63,7 @@ void oled_init(void)
     led_indicate_status(LED_HIT);
 }
 
+// WARNING! Startup print function has SendBuffer.
 void oled_print_welcome_screen(void){
     u8g2_ClearBuffer(&u8g2);
 
@@ -85,7 +86,7 @@ void oled_print_welcome_screen(void){
         35,
         "WELCOME"
     );
-
+    u8g2_SendBuffer(&u8g2);
 }
 
 void oled_print_bluetooth_connected_icon(u8g2_uint_t x0, u8g2_uint_t y0)
@@ -117,23 +118,29 @@ void oled_print_pressed_button(bool button_state[BTN_COUNT]){
     for(int i = 0; i < BTN_COUNT; i++){
         if(i == ID_LMB_BUTTON && button_state[i]){
             u8g2_DrawStr(&u8g2, 
-            41, 8,
+            41, 12,
             "LMB"
             );
         }
         if(i == ID_RMB_BUTTON && button_state[i]){
             u8g2_DrawStr(&u8g2, 
-            109, 8,
+            109, 12,
             "RMB"
             );
         }
         if(i == ID_HOLD_BUTTON && button_state[i]){
             u8g2_DrawStr(&u8g2, 
-            72, 8,
+            72, 12,
             "HOLD"
             );
         }
     }
+}
+
+void oled_print_table_items(){
+    u8g2_DrawLine(&u8g2, 0, 17, 127, 17);
+    u8g2_DrawLine(&u8g2, 66, 0, 66, 17);
+    u8g2_DrawLine(&u8g2, 103, 0, 103, 17);
 }
 
 // MAIN FUNCTION IN EXT. CYCLE
@@ -141,11 +148,11 @@ void oled_update_ui(bool host_is_connected, bool button_state[BTN_COUNT])
 {
     u8g2_ClearBuffer(&u8g2);
     
-    
     if (!host_is_connected) {
         oled_print_bluetooth_disconnect_screen();
         vTaskDelay(500 / portTICK_PERIOD_MS);
     }else{
+        oled_print_table_items();
         oled_print_bluetooth_connected_icon(0, 16);
         oled_print_pressed_button(button_state);
     }
