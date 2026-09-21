@@ -6,6 +6,7 @@
 #include "../drivers/buttons.h"
 #include "../drivers/oled.h"
 #include "../drivers/adc.h"
+#include "../drivers/bmi160.h"
 
 // ESP32
 
@@ -14,4 +15,5 @@ void board_init(){
     buttons_init();
     oled_init();
     adc_init();
+    bmi160_init();
 }

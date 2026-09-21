@@ -197,3 +197,8 @@ void oled_update_ui(bool host_is_connected, bool button_state[BTN_COUNT])
     
     u8g2_SendBuffer(&u8g2);
 }
+
+i2c_master_bus_handle_t oled_get_i2c_bus(void)
+{
+    return i2c_ctx.bus_handle;
+}

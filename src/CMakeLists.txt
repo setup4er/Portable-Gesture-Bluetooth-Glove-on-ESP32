@@ -11,6 +11,7 @@ idf_component_register(
         drivers/buttons.c
         drivers/oled.c
         drivers/adc.c
+        drivers/bmi160.c
         board/board.c
 
     INCLUDE_DIRS

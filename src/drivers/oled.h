@@ -6,6 +6,8 @@
  * @date 2026-08-12
  * @description Oled init file
  */
+#include "driver/i2c_master.h"
+
 
 #define SDA_PIN     GPIO_NUM_21
 #define SCL_PIN     GPIO_NUM_22
@@ -16,6 +18,7 @@
 
 #define BTN_COUNT   3
 
+i2c_master_bus_handle_t oled_get_i2c_bus(void);
 void oled_init();
 void oled_update_ui(bool host_is_connected, bool button_state[BTN_COUNT]);
 void oled_print_welcome_screen(void);
