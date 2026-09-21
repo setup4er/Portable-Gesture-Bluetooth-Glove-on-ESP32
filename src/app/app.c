@@ -12,6 +12,7 @@
 #include "freertos/task.h"
 
 #include <stdbool.h>
+#include <stdint.h>
 
 bool button_state[BTN_COUNT];
 
@@ -22,20 +23,8 @@ static int dy = 0;
 /*
  * Mouse loop.
  *
- * Important:
- * The previous version used:
- *
- *     pdMS_TO_TICKS(5)
- *
- * with xTaskDelayUntil().
- *
- * On a project with a 100 Hz FreeRTOS tick this becomes 0 ticks,
- * which causes the ESP-IDF assertion:
- *
- *     xTaskDelayUntil ... (xTimeIncrement > 0U)
- *
- * 10 ms is one full FreeRTOS tick at 100 Hz, so it is safe and
- * gives a stable 100 Hz mouse loop.
+ * 100 Hz keeps input smooth and avoids a zero-tick
+ * xTaskDelayUntil() on a 100 Hz FreeRTOS tick.
  */
 static void mouse_task(void *arg)
 {
@@ -56,9 +45,29 @@ static void mouse_task(void *arg)
             bmi160_get_mouse_delta(&dx, &dy);
         }
 
+        /*
+         * IMPORTANT:
+         * The mouse movement report must contain the current
+         * LMB/RMB state.
+         *
+         * Sending 0 here would release the button on every
+         * movement report and make drag-and-drop impossible.
+         */
+        uint8_t button_mask = 0;
+
+        if (button_state[BTN_LMB])
+            button_mask |= 0x01;
+
+        if (button_state[BTN_RMB])
+            button_mask |= 0x02;
+
         if (dx != 0 || dy != 0)
         {
-            hid_send_mouse_report(dx, dy, 0);
+            hid_send_mouse_report(
+                dx,
+                dy,
+                button_mask
+            );
         }
 
         vTaskDelayUntil(

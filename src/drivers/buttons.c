@@ -17,13 +17,16 @@
 #define MASK_RMB 0x02
 
 static uint8_t prev_mask = 0;
+
 static int64_t last_lmb_change = 0;
 static int64_t last_rmb_change = 0;
 static int64_t last_hold_change = 0;
 
 static volatile bool hold_active = false;
 
-void buttons_init(){
+
+void buttons_init()
+{
     gpio_reset_pin(LMB_BUTTON);
     gpio_reset_pin(RMB_BUTTON);
     gpio_reset_pin(HOLD_BUTTON);
@@ -33,6 +36,7 @@ void buttons_init(){
             (1ULL << LMB_BUTTON) |
             (1ULL << RMB_BUTTON) |
             (1ULL << HOLD_BUTTON),
+
         .mode = GPIO_MODE_INPUT,
         .pull_up_en = GPIO_PULLUP_ENABLE,
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
@@ -42,57 +46,125 @@ void buttons_init(){
     gpio_config(&btn_config);
 }
 
-void buttons_click_event(){
-    int64_t now = esp_timer_get_time() / 1000; // мс
 
-    // Кнопка замыкает на GND -> при нажатии LOW (0)
-    bool lmb_raw  = (gpio_get_level(LMB_BUTTON)  == 0);
-    bool rmb_raw  = (gpio_get_level(RMB_BUTTON)  == 0);
-    bool hold_raw = (gpio_get_level(HOLD_BUTTON) == 0);
+void buttons_click_event()
+{
+    int64_t now = esp_timer_get_time() / 1000;
+
+    /*
+     * Buttons are connected to GND.
+     * LOW = pressed.
+     */
+    bool lmb_raw =
+        (gpio_get_level(LMB_BUTTON) == 0);
+
+    bool rmb_raw =
+        (gpio_get_level(RMB_BUTTON) == 0);
+
+    bool hold_raw =
+        (gpio_get_level(HOLD_BUTTON) == 0);
 
     uint8_t new_mask = prev_mask;
 
-    // --- LMB ---
-    bool lmb_current = (prev_mask & MASK_LMB) != 0;
-    if (lmb_raw != lmb_current && (now - last_lmb_change) > DEBOUNCE_MS) {
+
+    /* LMB */
+    bool lmb_current =
+        (prev_mask & MASK_LMB) != 0;
+
+    if (
+        lmb_raw != lmb_current &&
+        (now - last_lmb_change) > DEBOUNCE_MS
+    )
+    {
         last_lmb_change = now;
-        if (lmb_raw) new_mask |= MASK_LMB;
-        else         new_mask &= ~MASK_LMB;
-        ESP_LOGI(BTN_TAG, "LMB %s", lmb_raw ? "pressed" : "released");
+
+        if (lmb_raw)
+            new_mask |= MASK_LMB;
+        else
+            new_mask &= ~MASK_LMB;
+
+        ESP_LOGI(
+            BTN_TAG,
+            "LMB %s",
+            lmb_raw ? "pressed" : "released"
+        );
     }
 
-    // --- RMB ---
-    bool rmb_current = (prev_mask & MASK_RMB) != 0;
-    if (rmb_raw != rmb_current && (now - last_rmb_change) > DEBOUNCE_MS) {
+
+    /* RMB */
+    bool rmb_current =
+        (prev_mask & MASK_RMB) != 0;
+
+    if (
+        rmb_raw != rmb_current &&
+        (now - last_rmb_change) > DEBOUNCE_MS
+    )
+    {
         last_rmb_change = now;
-        if (rmb_raw) new_mask |= MASK_RMB;
-        else         new_mask &= ~MASK_RMB;
-        ESP_LOGI(BTN_TAG, "RMB %s", rmb_raw ? "pressed" : "released");
+
+        if (rmb_raw)
+            new_mask |= MASK_RMB;
+        else
+            new_mask &= ~MASK_RMB;
+
+        ESP_LOGI(
+            BTN_TAG,
+            "RMB %s",
+            rmb_raw ? "pressed" : "released"
+        );
     }
-    
-    // --- HOLD (внутренний флаг) ---
-    if (hold_raw != hold_active && (now - last_hold_change) > DEBOUNCE_MS) {
+
+
+    /* HOLD */
+    if (
+        hold_raw != hold_active &&
+        (now - last_hold_change) > DEBOUNCE_MS
+    )
+    {
         last_hold_change = now;
-        hold_active = hold_raw;
-        ESP_LOGI(BTN_TAG, "HOLD %d", hold_active);
 
-        ESP_LOGI(BTN_TAG, "HOLD %s", hold_active ? "engaged" : "released");
+        hold_active = hold_raw;
+
+        ESP_LOGI(
+            BTN_TAG,
+            "HOLD %s",
+            hold_active ? "engaged" : "released"
+        );
     }
 
-    if (new_mask != prev_mask) {
-        hid_send_mouse_report(0, 0, new_mask);
+
+    /*
+     * Send button state immediately when LMB/RMB changes.
+     *
+     * prev_mask is updated only after sending the report.
+     */
+    if (new_mask != prev_mask)
+    {
+        hid_send_mouse_report(
+            0,
+            0,
+            new_mask
+        );
+
         prev_mask = new_mask;
     }
 }
 
-bool buttons_is_hold_active(void){
+
+bool buttons_is_hold_active()
+{
     return hold_active;
 }
 
-// Getter of buttons status.
+
 void buttons_get_states(bool states[BTN_COUNT])
 {
-    states[BTN_LMB]  = (prev_mask & MASK_LMB) != 0;
-    states[BTN_RMB]  = (prev_mask & MASK_RMB) != 0;
-    states[BTN_HOLD] = hold_active;
+    states[BTN_LMB] =
+        (prev_mask & MASK_LMB) != 0;
+
+    states[BTN_RMB] =
+        (prev_mask & MASK_RMB) != 0;
+
+    states[BTN_HOLD] =
+        hold_active;
 }
