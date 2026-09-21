@@ -22,7 +22,7 @@ void app_init(){
     while (1) {
         oled_update_ui(host_is_connected(), button_state);
 
-        // calculate_delta_from_bno055(&dx, &dy); // Вычисления изменения векторов контроллера bno055
+        // calculate_delta_from_gyroscope(&dx, &dy); // Вычисления изменения векторов контроллера bno055
         buttons_click_event();
         buttons_get_states(button_state);
 

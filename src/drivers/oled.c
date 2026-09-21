@@ -1,5 +1,6 @@
 #include "oled.h"
 #include "board_led.h"
+#include "adc.h"
 
 #include "esp_log.h"
 #include "u8g2.h"
@@ -102,7 +103,6 @@ void oled_print_bluetooth_disconnect_screen(){
         0, 33,
         "NO DEVICE"
     );
-
     if(!bluetooth_icon_visible){
         oled_print_bluetooth_connected_icon(56, 56);
         bluetooth_icon_visible = true;
@@ -112,35 +112,58 @@ void oled_print_bluetooth_disconnect_screen(){
 }
 
 void oled_print_pressed_button(bool button_state[BTN_COUNT]){
-    
+
     u8g2_SetFont(&u8g2, u8g2_font_6x12_tf);
 
     for(int i = 0; i < BTN_COUNT; i++){
         if(i == ID_LMB_BUTTON && button_state[i]){
-            u8g2_DrawStr(&u8g2, 
-            41, 12,
-            "LMB"
-            );
-        }
-        if(i == ID_RMB_BUTTON && button_state[i]){
-            u8g2_DrawStr(&u8g2, 
-            109, 12,
-            "RMB"
-            );
+            u8g2_DrawStr(&u8g2, 22, 12, "LMB");
         }
         if(i == ID_HOLD_BUTTON && button_state[i]){
-            u8g2_DrawStr(&u8g2, 
-            72, 12,
-            "HOLD"
-            );
+            u8g2_DrawStr(&u8g2, 44, 12, "HOLD");
+        }
+        if(i == ID_RMB_BUTTON && button_state[i]){
+            u8g2_DrawStr(&u8g2, 72, 12, "RMB");
         }
     }
 }
 
 void oled_print_table_items(){
-    u8g2_DrawLine(&u8g2, 0, 17, 127, 17);
-    u8g2_DrawLine(&u8g2, 66, 0, 66, 17);
-    u8g2_DrawLine(&u8g2, 103, 0, 103, 17);
+    u8g2_DrawLine(&u8g2, 0, 17, 127, 17);   // горизонтальная
+
+    u8g2_DrawLine(&u8g2, 42, 0, 42, 17);
+    u8g2_DrawLine(&u8g2, 70, 0, 70, 17);
+}
+
+void oled_print_battery_percent(void)
+{
+    int percent = adc_get_percent();
+
+    // Иконка батарейки: корпус 16x9 px в правом верхнем углу
+    const u8g2_uint_t bx = 110;   // x корпуса
+    const u8g2_uint_t by = 1;     // y корпуса
+    const u8g2_uint_t bw = 16;    // ширина корпуса
+    const u8g2_uint_t bh = 9;     // высота корпуса
+
+    // Корпус
+    u8g2_DrawFrame(&u8g2, bx, by, bw, bh);
+
+    // "Пимпочка" справа
+    u8g2_DrawBox(&u8g2, bx + bw, by + 3, 2, 3);
+
+    // Заполнение по проценту (внутренняя область 14x7)
+    u8g2_uint_t fill_w = (u8g2_uint_t)((bw - 2) * percent / 100);
+    if (fill_w > 0) {
+        u8g2_DrawBox(&u8g2, bx + 1, by + 1, fill_w, bh - 2);
+    }
+
+    // Текст процента слева от иконки
+    char buf[8];
+    snprintf(buf, sizeof(buf), "%d%%", percent);
+
+    u8g2_SetFont(&u8g2, u8g2_font_5x7_tf);
+    u8g2_uint_t text_w = u8g2_GetStrWidth(&u8g2, buf);
+    u8g2_DrawStr(&u8g2, bx - text_w - 3, by + 7, buf);
 }
 
 // MAIN FUNCTION IN EXT. CYCLE
@@ -157,5 +180,7 @@ void oled_update_ui(bool host_is_connected, bool button_state[BTN_COUNT])
         oled_print_pressed_button(button_state);
     }
 
+    oled_print_battery_percent();   
+    
     u8g2_SendBuffer(&u8g2);
 }

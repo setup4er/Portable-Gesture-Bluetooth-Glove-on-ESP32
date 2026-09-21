@@ -10,6 +10,7 @@ idf_component_register(
         drivers/board_led.c
         drivers/buttons.c
         drivers/oled.c
+        drivers/adc.c
         board/board.c
 
     INCLUDE_DIRS
