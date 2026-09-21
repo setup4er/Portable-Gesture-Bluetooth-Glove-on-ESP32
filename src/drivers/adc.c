@@ -1,102 +1,185 @@
-// C++ INCLUDES
-
-// HEADERS
 #include "adc.h"
 
-// ESP-IDF
 #include "esp_adc/adc_oneshot.h"
 #include "esp_adc/adc_cali.h"
 #include "esp_adc/adc_cali_scheme.h"
 #include "esp_log.h"
 
-// ================== НАСТРОЙКИ ==================
-#define BAT_ADC_UNIT      ADC_UNIT_1
-#define BAT_ADC_CHANNEL   ADC_CHANNEL_5     // GPIO 33 = ADC1_CH5
-#define BAT_ADC_ATTEN     ADC_ATTEN_DB_12   // ~0..3.3 В
-#define BAT_ADC_BITWIDTH  ADC_BITWIDTH_DEFAULT
+#define BAT_ADC_UNIT       ADC_UNIT_1
+#define BAT_ADC_CHANNEL    ADC_CHANNEL_5       // GPIO33
+#define BAT_ADC_ATTEN      ADC_ATTEN_DB_12
+#define BAT_ADC_BITWIDTH   ADC_BITWIDTH_DEFAULT
 
-#define DIVIDER_RATIO     2.0f              // (R1+R2)/R2, для 100k+100k = 2
+// 10k + 10k divider:
+// Battery+ -> 10k -> GPIO33 -> 10k -> GND
+#define DIVIDER_RATIO      2.0f
 
-// Пороги Li-Ion (напряжение на самой банке)
-#define BAT_FULL_MV       4200              // 100%
-#define BAT_EMPTY_MV      3000              // 0%
+#define BAT_FULL_MV        4200
+#define BAT_EMPTY_MV       3000
 
-static const char *TAG = "ADC";
+#define ADC_SAMPLES         16
 
-static adc_oneshot_unit_handle_t s_adc_handle = NULL;
-static adc_cali_handle_t         s_cali_handle = NULL;
-static bool                      s_calibrated = false;
+static const char *TAG = "BAT";
 
-// ================== INIT ==================
+static adc_oneshot_unit_handle_t adc_handle = NULL;
+static adc_cali_handle_t adc_cali_handle = NULL;
+
+static bool calibration_enabled = false;
+
+
+// --------------------------------------------------
+// ADC INIT
+// --------------------------------------------------
+
 void adc_init(void)
 {
-    // 1. Создание unit ADC1
-    adc_oneshot_unit_init_cfg_t init_cfg = {
+    adc_oneshot_unit_init_cfg_t init_config = {
         .unit_id = BAT_ADC_UNIT,
+        .ulp_mode = ADC_ULP_MODE_DISABLE,
     };
-    ESP_ERROR_CHECK(adc_oneshot_new_unit(&init_cfg, &s_adc_handle));
 
-    // 2. Настройка канала
-    adc_oneshot_chan_cfg_t chan_cfg = {
-        .bitwidth = BAT_ADC_BITWIDTH,
-        .atten    = BAT_ADC_ATTEN,
-    };
-    ESP_ERROR_CHECK(adc_oneshot_config_channel(s_adc_handle, BAT_ADC_CHANNEL, &chan_cfg));
+    ESP_ERROR_CHECK(
+        adc_oneshot_new_unit(&init_config, &adc_handle)
+    );
 
-    // 3. Калибровка LINE FITTING (для классического ESP32)
-    adc_cali_line_fitting_config_t cali_cfg = {
-        .unit_id  = BAT_ADC_UNIT,
-        .atten    = BAT_ADC_ATTEN,
+    adc_oneshot_chan_cfg_t config = {
+        .bitwidth = BAT_ADC_BITWIDTH,
+        .atten = BAT_ADC_ATTEN,
+    };
+
+    ESP_ERROR_CHECK(
+        adc_oneshot_config_channel(
+            adc_handle,
+            BAT_ADC_CHANNEL,
+            &config
+        )
+    );
+
+    // Calibration
+    adc_cali_line_fitting_config_t cali_config = {
+        .unit_id = BAT_ADC_UNIT,
+        .atten = BAT_ADC_ATTEN,
         .bitwidth = BAT_ADC_BITWIDTH,
     };
-    esp_err_t ret = adc_cali_create_scheme_line_fitting(&cali_cfg, &s_cali_handle);
+
+    esp_err_t ret =
+        adc_cali_create_scheme_line_fitting(
+            &cali_config,
+            &adc_cali_handle
+        );
+
     if (ret == ESP_OK) {
-        s_calibrated = true;
-        ESP_LOGI(TAG, "ADC инициализирован, калибровка line fitting активна");
+        calibration_enabled = true;
+        ESP_LOGI(TAG, "ADC calibration enabled");
     } else {
-        s_calibrated = false;
-        ESP_LOGW(TAG, "ADC инициализирован без калибровки");
+        calibration_enabled = false;
+        ESP_LOGW(TAG, "ADC calibration unavailable");
     }
 }
 
-// ================== GET VOLTAGE ==================
+
+// --------------------------------------------------
+// READ BATTERY VOLTAGE
+// --------------------------------------------------
+
 float adc_get_voltage(void)
 {
-    if (s_adc_handle == NULL) return 0.0f;
+    if (adc_handle == NULL) {
+        return 0.0f;
+    }
 
-    // --- Усреднение для стабильности ---
-    const int N = 16;
+    int raw = 0;
     int raw_sum = 0;
-    for (int i = 0; i < N; i++) {
-        int raw = 0;
-        if (adc_oneshot_read(s_adc_handle, BAT_ADC_CHANNEL, &raw) == ESP_OK) {
+    int successful_samples = 0;
+
+    for (int i = 0; i < ADC_SAMPLES; i++) {
+
+        esp_err_t ret =
+            adc_oneshot_read(
+                adc_handle,
+                BAT_ADC_CHANNEL,
+                &raw
+            );
+
+        if (ret == ESP_OK) {
             raw_sum += raw;
+            successful_samples++;
         }
     }
-    int raw_avg = raw_sum / N;
 
-    // --- Перевод в мВ ---
-    int voltage_mv = 0;
-    if (s_calibrated) {
-        adc_cali_raw_to_voltage(s_cali_handle, raw_avg, &voltage_mv);
-    } else {
-        voltage_mv = (raw_avg * 3300) / 4095;
+    if (successful_samples == 0) {
+        ESP_LOGW(TAG, "ADC read failed");
+        return 0.0f;
     }
 
-    // --- Напряжение на батарее (с учётом делителя) ---
-    float battery_v = (voltage_mv / 1000.0f) * DIVIDER_RATIO;
-    return battery_v;
+    int raw_avg = raw_sum / successful_samples;
+
+    int adc_mv = 0;
+
+    if (calibration_enabled) {
+
+        esp_err_t ret =
+            adc_cali_raw_to_voltage(
+                adc_cali_handle,
+                raw_avg,
+                &adc_mv
+            );
+
+        if (ret != ESP_OK) {
+            adc_mv =
+                (raw_avg * 3300) / 4095;
+        }
+
+    } else {
+
+        adc_mv =
+            (raw_avg * 3300) / 4095;
+    }
+
+    // ADC sees half of battery voltage
+    float battery_mv =
+        adc_mv * DIVIDER_RATIO;
+
+    float battery_voltage =
+        battery_mv / 1000.0f;
+
+    ESP_LOGI(
+        TAG,
+        "RAW=%d | ADC=%d mV | BAT=%.3f V",
+        raw_avg,
+        adc_mv,
+        battery_voltage
+    );
+
+    return battery_voltage;
 }
 
-// ================== GET PERCENT ==================
+
+// --------------------------------------------------
+// BATTERY PERCENT
+// --------------------------------------------------
+
+int adc_voltage_to_percent(float voltage)
+{
+    int mv = (int)(voltage * 1000.0f);
+
+    int percent =
+        (mv - BAT_EMPTY_MV) * 100 /
+        (BAT_FULL_MV - BAT_EMPTY_MV);
+
+    if (percent < 0)
+        percent = 0;
+
+    if (percent > 100)
+        percent = 100;
+
+    return percent;
+}
+
+
 int adc_get_percent(void)
 {
-    float v = adc_get_voltage();
-    int mv = (int)(v * 1000.0f);
+    float voltage = adc_get_voltage();
 
-    if (mv >= BAT_FULL_MV)  return 100;
-    if (mv <= BAT_EMPTY_MV) return 0;
-
-    int percent = (mv - BAT_EMPTY_MV) * 100 / (BAT_FULL_MV - BAT_EMPTY_MV);
-    return percent;
+    return adc_voltage_to_percent(voltage);
 }

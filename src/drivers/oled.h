@@ -19,5 +19,6 @@
 void oled_init();
 void oled_update_ui(bool host_is_connected, bool button_state[BTN_COUNT]);
 void oled_print_welcome_screen(void);
+void oled_set_battery_percent(int percent);
 
 #endif // OLED_H

@@ -15,6 +15,8 @@
 #define OLED_HEIGHT 64
 
 
+static int battery_percent = 0;
+
 static u8g2_t u8g2;
 
 bool bluetooth_icon_visible = false; // Icon in NO DEVICE screen
@@ -96,6 +98,17 @@ void oled_print_bluetooth_connected_icon(u8g2_uint_t x0, u8g2_uint_t y0)
     u8g2_DrawGlyph(&u8g2, x0, y0, 0x004A);
 }
 
+void oled_set_battery_percent(int percent)
+{
+    if (percent < 0)
+        percent = 0;
+
+    if (percent > 100)
+        percent = 100;
+
+    battery_percent = percent;
+}
+
 void oled_print_bluetooth_disconnect_screen(){
     u8g2_SetFont(&u8g2, u8g2_font_fur17_tf);
     u8g2_DrawStr(
@@ -137,7 +150,7 @@ void oled_print_table_items(){
 
 void oled_print_battery_percent(void)
 {
-    int percent = adc_get_percent();
+    int percent = battery_percent;
 
     // Иконка батарейки: корпус 16x9 px в правом верхнем углу
     const u8g2_uint_t bx = 110;   // x корпуса
